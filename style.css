@@ -133,11 +133,22 @@ section {
     transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
         transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     will-change: opacity, transform;
+    /* Safety net: auto-show after 2s if JS hasn't kicked in */
+    animation: fallback-show 0.5s ease forwards;
+    animation-delay: 2s;
 }
 
 .animate-on-scroll.is-visible {
     opacity: 1;
     transform: translateY(0);
+    animation: none;
+}
+
+@keyframes fallback-show {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .delay-1 {
