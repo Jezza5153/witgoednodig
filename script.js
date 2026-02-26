@@ -107,5 +107,64 @@ document.addEventListener('DOMContentLoaded', () => {
         animatedElements.forEach(el => {
             el.classList.add('is-visible');
         });
+    // 6. Contact Form Submission
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm) {
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = contactForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            // Loading state
+            submitBtn.textContent = 'Verzenden...';
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = '0.7';
+
+            const formData = {
+                name: document.getElementById('name').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value,
+                interest: document.getElementById('interest').value,
+                message: document.getElementById('message').value,
+            };
+
+            try {
+                const response = await fetch('/api/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Success - replace form with thank you message
+                    contactForm.innerHTML = `
+                        <div style="text-align: center; padding: 2rem 0;">
+                            <i class="ph-fill ph-check-circle" style="font-size: 3rem; color: #22c55e; margin-bottom: 1rem; display: block;"></i>
+                            <h3 style="margin-bottom: 0.5rem; color: var(--secondary);">Bedankt, ${formData.name}!</h3>
+                            <p style="color: var(--text-muted);">Je aanvraag is ontvangen. Binnen 24 uur wordt er contact opgenomen.</p>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(data.error || 'Verzenden mislukt');
+                }
+            } catch (error) {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                submitBtn.style.opacity = '1';
+
+                // Show error below button
+                let errorEl = contactForm.querySelector('.form-error');
+                if (!errorEl) {
+                    errorEl = document.createElement('p');
+                    errorEl.className = 'form-error';
+                    errorEl.style.cssText = 'color: #ef4444; text-align: center; margin-top: 1rem; font-size: 0.9rem;';
+                    submitBtn.after(errorEl);
+                }
+                errorEl.textContent = error.message || 'Er ging iets mis. Probeer het opnieuw.';
+            }
+        });
     }
 });
